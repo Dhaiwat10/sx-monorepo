@@ -1,3 +1,4 @@
+import { isAddress } from '@ethersproject/address';
 import { ENSChainId, resolveName as resolveEnsName } from '@/helpers/ens';
 import { memoize } from '@/helpers/utils';
 import { NetworkID } from '@/types';
@@ -34,13 +35,15 @@ function createResolver() {
     name: string,
     networkId: NetworkID = 'eth'
   ): Promise<ResolvedName | null> {
-    const shouldUseEns = name.endsWith('.eth') && !!ENS_CHAIN_IDS[networkId];
+    if (isAddress(name)) {
+      return { networkId, address: name };
+    }
 
-    const resolved = shouldUseEns
-      ? await resolveEns(networkId, name)
-      : { networkId, address: name };
+    if (!ENS_CHAIN_IDS[networkId]) {
+      return { networkId, address: name };
+    }
 
-    return resolved;
+    return resolveEns(networkId, name);
   }
 
   return {

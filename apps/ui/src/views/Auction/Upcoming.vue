@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { formatUnits } from 'ethers';
+import { formatUnits } from '@ethersproject/units';
 import metadata from '@/helpers/auction/metadata.json';
 import { AuctionWithMetadata } from '@/helpers/auction/types';
 import { _d, _n, _p } from '@/helpers/utils';

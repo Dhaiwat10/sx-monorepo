@@ -1,5 +1,6 @@
 import { ensNormalize } from '@ethersproject/hash';
 import { ChainId } from '@/types';
+import { getProvider } from './provider';
 import { formatAddress } from './utils';
 
 const resolvedAddresses = new Map<string, string | null>();
@@ -17,32 +18,25 @@ export async function getAddresses(
     const inputMapping = Object.fromEntries(
       names.map(name => [name, ensNormalize(name)])
     );
-    const resolvedNamesKeys = Array.from(resolvedNames.keys());
-    const unresolvedNames = Object.values(inputMapping).filter(
-      name => !resolvedNamesKeys.includes(name)
+    const unresolvedNames = Array.from(
+      new Set(
+        Object.values(inputMapping).filter(name => !resolvedNames.has(name))
+      )
     );
-    let data: string[] = [];
 
     if (unresolvedNames.length > 0) {
-      const res = await fetch(STAMP_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          method: 'resolve_names',
-          params: unresolvedNames,
-          network: chainId
-        })
-      });
-      data = (await res.json()).result;
-
-      unresolvedNames.forEach((formatted: string) => {
-        resolvedNames.set(formatted, data[formatted]);
+      const provider = getProvider(Number(chainId));
+      const results = await Promise.all(
+        unresolvedNames.map(name =>
+          provider.resolveName(name).catch(() => null)
+        )
+      );
+      unresolvedNames.forEach((name, i) => {
+        resolvedNames.set(name, results[i] ?? null);
       });
     }
 
-    const entries: any = Object.entries(inputMapping)
+    const entries = Object.entries(inputMapping)
       .map(([name, formatted]) => [name, resolvedNames.get(formatted)])
       .filter(([, address]) => address);
 
@@ -60,27 +54,23 @@ export async function getNames(
     const inputMapping = Object.fromEntries(
       addresses.map(address => [address, formatAddress(address)])
     );
-    const resolvedAddressesKeys = Array.from(resolvedAddresses.keys());
-    const unresolvedAddresses = Object.values(inputMapping).filter(
-      address => !resolvedAddressesKeys.includes(address)
+    const unresolvedAddresses = Array.from(
+      new Set(
+        Object.values(inputMapping).filter(
+          address => !resolvedAddresses.has(address)
+        )
+      )
     );
-    let data: string[] = [];
 
     if (unresolvedAddresses.length > 0) {
-      const res = await fetch(STAMP_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          method: 'lookup_addresses',
-          params: unresolvedAddresses
-        })
-      });
-      data = (await res.json()).result;
-
-      unresolvedAddresses.forEach((formatted: string) => {
-        resolvedAddresses.set(formatted, data[formatted]);
+      const provider = getProvider(1);
+      const results = await Promise.all(
+        unresolvedAddresses.map(address =>
+          provider.lookupAddress(address).catch(() => null)
+        )
+      );
+      unresolvedAddresses.forEach((address, i) => {
+        resolvedAddresses.set(address, results[i] ?? null);
       });
     }
 
@@ -101,6 +91,8 @@ export async function getNames(
   }
 }
 
+// The Universal Resolver does not expose name enumeration (one address ->
+// list of names owned), so this still hits Snapshot's stamp.fyi indexer.
 export async function getENSNames(
   address: string,
   chainIds: ChainId[]
@@ -124,6 +116,7 @@ export async function getENSNames(
   return (await res.json()).result;
 }
 
+// Used for non-ENS namespaces (currently .shib via Shibarium); not ENS resolution.
 export async function getOwner(
   name: string,
   chainId: ChainId

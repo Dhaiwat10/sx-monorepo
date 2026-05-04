@@ -27,6 +27,7 @@
   "dependencies": {
     "@apollo/client": "^3.12.9",
     "@braintree/sanitize-url": "^6.0.4",
+    "@ensdomains/ethers-patch-v5": "^0.0.5",
     "@ethersproject/abi": "^5.8.0",
     "@ethersproject/abstract-signer": "^5.8.0",
     "@ethersproject/address": "^5.8.0",
@@ -70,7 +71,7 @@
     "buffer": "^6.0.3",
     "dayjs": "^1.11.10",
     "decimal.js": "^10.6.0",
-    "ethers": "^6.13.5",
+    "ethers": "^5.8.0",
     "events": "^3.3.0",
     "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
