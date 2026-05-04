@@ -27,6 +27,7 @@
   "dependencies": {
     "@apollo/client": "^3.12.9",
     "@braintree/sanitize-url": "^6.0.4",
+    "@ensdomains/ethers-patch-v5": "^0.0.5",
     "@ethersproject/abi": "^5.8.0",
     "@ethersproject/abstract-signer": "^5.8.0",
     "@ethersproject/address": "^5.8.0",
