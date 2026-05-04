@@ -1,3 +1,4 @@
+import '@/helpers/ensv2-patch-shim';
 import '@ensdomains/ethers-patch-v5';
 import { createTune } from '@snapshot-labs/tune';
 import { VueQueryPlugin } from '@tanstack/vue-query';
